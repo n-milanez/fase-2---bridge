@@ -62,5 +62,5 @@ O cliente roda três rotinas: gera o relatório de Vendas em PDF, troca esse mes
 
 No segundo bloco dá pra ver que os dados continuam os mesmos, só muda a formatação, porque o que trocou foi o exportador, não o relatório.
 
-DESIREE CONSTANTINO 
+DESIREE CONSTANTINO E 
 NICOLE MILANEZ
