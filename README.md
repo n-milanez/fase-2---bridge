@@ -1,34 +1,24 @@
-# Padrão Bridge — Módulo de Relatórios TechFatec
+# Padrão Bridge - Módulo de Relatórios TechFatec
 
-Projeto da disciplina de padrões de projeto: módulo de relatórios do sistema de inteligência de negócios **TechFatec**, modelado e implementado com o **Padrão Bridge** (Java).
+Projeto da disciplina de padrões de projeto. A ideia é pegar o módulo de relatórios de um sistema fictício, a TechFatec, e resolver um problema de escalabilidade usando o Padrão Bridge, em Java.
 
-## 1. Problema
+## O problema
 
-O sistema legado gerava apenas o **Relatório de Vendas** em **PDF**. O novo requisito adiciona o **Relatório de Desempenho de RH** e exige que todos os relatórios (atuais e futuros) sejam exportáveis em **PDF, Excel (XLSX) e HTML**.
+O sistema legado só gerava um tipo de relatório, o de Vendas, e só em PDF. Aí apareceu um requisito novo: precisa de um relatório de RH também, e agora todos os relatórios (os que já existem e os que vierem depois) têm que poder sair em PDF, Excel e HTML.
 
-Sem o Bridge, cada combinação viraria uma subclasse (`RelatorioVendasPDF`, `RelatorioVendasExcel`, `RelatorioRHHTML`...): **2 relatórios × 3 formatos = 6 classes**, e cada novo relatório ou formato multiplicaria esse número (explosão de subclasses).
+Se eu resolvesse isso criando uma subclasse pra cada combinação, tipo `RelatorioVendasPDF`, `RelatorioVendasExcel`, `RelatorioRHHTML` e assim por diante, já ia dar seis classes só com dois relatórios e três formatos. E cada relatório ou formato novo multiplica esse número de novo. É a explosão de subclasses que o Bridge existe pra evitar.
 
-## 2. Solução: Bridge
+## Como o Bridge resolve isso
 
-O Bridge separa **o que** o relatório é (abstração) de **como** ele é exportado (implementação), ligando os dois lados por uma "ponte" (agregação). Cada lado evolui de forma independente: **2 + 3 = 5 classes**, e adicionar um relatório ou um formato é só criar 1 classe nova.
+O Bridge separa o que o relatório é (a abstração) de como ele é exportado (a implementação), e liga os dois lados por uma agregação, que funciona como ponte. Cada lado evolui sozinho: em vez de 2 x 3 = 6 classes, fico com 2 + 3 = 5, e adicionar um relatório ou um formato novo é só criar uma classe a mais, sem mexer em nada que já existe.
 
-| Papel no Bridge | Classe / Interface | Pasta |
-|---|---|---|
-| Abstração | `Relatorio` (abstrata) | `src/abstracao/` |
-| Abstração refinada | `RelatorioVendas`, `RelatorioRH` | `src/abstracao/` |
-| Implementador | `FormatoExportacao` (interface) | `src/implementacao/` |
-| Implementadores concretos | `ExportadorPDF`, `ExportadorExcel`, `ExportadorHTML` | `src/implementacao/` |
-| Cliente | `Main` | `src/cliente/` |
+Do lado da abstração está `Relatorio`, que é abstrata, e as abstrações refinadas `RelatorioVendas` e `RelatorioRH`, todas em `src/abstracao`. Do lado da implementação está a interface `FormatoExportacao` e os implementadores concretos `ExportadorPDF`, `ExportadorExcel` e `ExportadorHTML`, em `src/implementacao`. Quem amarra os dois lados é o cliente, a classe `Main`, em `src/cliente`.
 
-### Princípio Aberto/Fechado (SOLID)
+Isso também cobre o princípio aberto/fechado do SOLID: pra criar um relatório financeiro ou um exportador CSV amanhã, basta escrever uma classe nova, sem alterar as existentes.
 
-Novo relatório (ex.: `RelatorioFinanceiro`) ou novo formato (ex.: `ExportadorCSV`) = **criar uma classe nova**, sem modificar nenhuma classe existente.
+Sobre a injeção de dependência: `Relatorio` recebe o exportador pelo construtor e nunca instancia um exportador concreto com `new`. Quem faz isso é o cliente. Também dá pra trocar o exportador em tempo de execução com `setExportador(...)`, sem precisar recriar o objeto do relatório.
 
-### Injeção de dependência
-
-`Relatorio` recebe o exportador **pelo construtor** e nunca usa `new` com um exportador concreto. Quem cria os exportadores e os injeta é o cliente (`Main`). Também é possível trocar o exportador em tempo de execução com `setExportador(...)`.
-
-## 3. Estrutura de diretórios
+## Estrutura de pastas
 
 ```
 Bridge-/
@@ -50,97 +40,25 @@ Bridge-/
         └── Main.java
 ```
 
-## 4. Diagrama de classes
+## Diagrama de classes
 
 ![Diagrama de classes](docs/classesdiagr.png)
 
-Versão textual (Mermaid), atualizada com o `setExportador` usado na troca em tempo de execução:
+O losango vazio entre `Relatorio` e `FormatoExportacao` indica agregação: o relatório tem um exportador, mas o exportador existe independente dele e pode ser trocado. O diagrama mostra só o construtor por simplicidade, mas no código `Relatorio` também tem o `setExportador(...)`, usado no passo 2 do `Main` pra trocar o formato do relatório de vendas em tempo de execução.
 
-```mermaid
-classDiagram
-    class Relatorio {
-        <<abstract>>
-        #exportador : FormatoExportacao
-        +Relatorio(exportador : FormatoExportacao)
-        +setExportador(exportador : FormatoExportacao) void
-        +gerarRelatorio()* void
-    }
-    class RelatorioVendas {
-        +RelatorioVendas(exportador : FormatoExportacao)
-        +gerarRelatorio() void
-    }
-    class RelatorioRH {
-        +RelatorioRH(exportador : FormatoExportacao)
-        +gerarRelatorio() void
-    }
-    class FormatoExportacao {
-        <<interface>>
-        +desenharCabecalho(titulo : String) void
-        +desenharCorpo(dados : List~String~) void
-        +finalizarArquivo() void
-    }
-    class ExportadorPDF
-    class ExportadorExcel
-    class ExportadorHTML
-
-    Relatorio <|-- RelatorioVendas
-    Relatorio <|-- RelatorioRH
-    Relatorio o-- FormatoExportacao : exportador
-    FormatoExportacao <|.. ExportadorPDF
-    FormatoExportacao <|.. ExportadorExcel
-    FormatoExportacao <|.. ExportadorHTML
-```
-
-O losango vazio (`o--`) indica **agregação**: o relatório *tem um* exportador, mas o exportador existe independentemente dele e pode ser compartilhado ou trocado.
-
-## 5. Diagrama de sequência
+## Diagrama de sequência
 
 ![Diagrama de sequência](docs/Diagrama_Sequencia_Bridge.png)
 
-```mermaid
-sequenceDiagram
-    participant Main
-    participant relatorio as relatorio : RelatorioVendas
-    participant exportador as exportador : ExportadorPDF
+O `Main` cria o `RelatorioVendas` passando o exportador no construtor e chama `gerarRelatorio()`. Dali em diante quem conduz é o próprio relatório: ele chama `desenharCabecalho`, `desenharCorpo` e `finalizarArquivo` no exportador, e só devolve o controle pro `Main` no fim. O relatório não sabe formatar nada, ele delega tudo pro exportador que recebeu injetado.
 
-    Main->>relatorio: new RelatorioVendas(exportador)
-    Main->>relatorio: gerarRelatorio()
-    relatorio->>exportador: desenharCabecalho(titulo)
-    exportador-->>relatorio: 
-    relatorio->>exportador: desenharCorpo(dados)
-    exportador-->>relatorio: 
-    relatorio->>exportador: finalizarArquivo()
-    exportador-->>relatorio: 
-    relatorio-->>Main: void
-    Note over relatorio,exportador: O relatório delega toda a formatação ao exportador injetado
-```
+## O que o Main faz e o que ele imprime
 
-## 6. Como compilar e executar
-
-Requisito: JDK 11 ou superior.
-
-**Windows (PowerShell / CMD) ou Linux/macOS**, a partir da raiz do projeto:
-
-```bash
-javac -encoding UTF-8 -d out src/abstracao/*.java src/implementacao/*.java src/cliente/*.java
-java -cp out cliente.Main
-```
-
-> No PowerShell, se o `*.java` não expandir, liste os arquivos manualmente ou use:
-> `javac -encoding UTF-8 -d out (Get-ChildItem -Recurse src -Filter *.java).FullName`
-
-## 7. Script de validação (`Main`) e saída esperada
-
-O cliente executa três rotinas:
-
-1. **Relatório de Vendas em PDF**
-2. **Mesmo** Relatório de Vendas alterado **em tempo de execução** para **Excel** (`setExportador`)
-3. **Relatório de RH em HTML**
+O cliente roda três rotinas: gera o relatório de Vendas em PDF, troca esse mesmo relatório pra Excel em tempo de execução com `setExportador`, e por fim gera o relatório de RH em HTML. Os exportadores simulam a exportação imprimindo no console, já que o foco do exercício é o desacoplamento do padrão, não a geração real dos arquivos.
 
 ```
 === 1) Relatorio de Vendas em PDF ===
 [PDF] Cabecalho: RELATORIO DE VENDAS
-[PDF] ------------------------------
 [PDF] Pagina 1 | Produto A - 120 unidades - R$ 12.000,00
 [PDF] Pagina 1 | Produto B - 80 unidades - R$ 9.600,00
 [PDF] Pagina 1 | Total do mes: R$ 21.600,00
@@ -163,11 +81,8 @@ O cliente executa três rotinas:
 [HTML] </body></html> | Arquivo relatorio.html finalizado.
 ```
 
-Os exportadores simulam a geração imprimindo no console (o foco da atividade é o desacoplamento do padrão, não a geração real dos arquivos).
+No segundo bloco dá pra ver que os dados continuam os mesmos, só muda a formatação, porque o que trocou foi o exportador, não o relatório.
 
-## 8. Vantagens obtidas
+## O que isso trouxe de vantagem
 
-- **Sem explosão de subclasses:** 2 relatórios + 3 formatos = 5 classes (e não 6).
-- **Aberto/Fechado:** extensão por novas classes, sem alterar as existentes.
-- **Desacoplamento:** `Relatorio` depende só da interface `FormatoExportacao` (inversão de dependência).
-- **Flexibilidade em runtime:** o formato pode mudar sem recriar o relatório.
+No fim das contas ficaram cinco classes no lugar de seis, dá pra estender criando classe nova sem alterar as existentes, `Relatorio` depende só da interface `FormatoExportacao` e não de nenhuma implementação concreta, e o formato pode mudar em tempo de execução sem recriar o relatório.
