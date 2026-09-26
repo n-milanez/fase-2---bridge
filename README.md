@@ -62,6 +62,5 @@ O cliente roda três rotinas: gera o relatório de Vendas em PDF, troca esse mes
 
 No segundo bloco dá pra ver que os dados continuam os mesmos, só muda a formatação, porque o que trocou foi o exportador, não o relatório.
 
-## O que isso trouxe de vantagem
-
-No fim das contas ficaram cinco classes no lugar de seis, dá pra estender criando classe nova sem alterar as existentes, `Relatorio` depende só da interface `FormatoExportacao` e não de nenhuma implementação concreta, e o formato pode mudar em tempo de execução sem recriar o relatório.
+DESIREE CONSTANTINO 
+NICOLE MILANEZ
