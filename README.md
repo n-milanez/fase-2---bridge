@@ -18,33 +18,12 @@ Isso também cobre o princípio aberto/fechado do SOLID: pra criar um relatório
 
 Sobre a injeção de dependência: `Relatorio` recebe o exportador pelo construtor e nunca instancia um exportador concreto com `new`. Quem faz isso é o cliente. Também dá pra trocar o exportador em tempo de execução com `setExportador(...)`, sem precisar recriar o objeto do relatório.
 
-## Estrutura de pastas
-
-```
-Bridge-/
-├── README.md
-├── docs/
-│   ├── classesdiagr.png
-│   └── Diagrama_Sequencia_Bridge.png
-└── src/
-    ├── abstracao/
-    │   ├── Relatorio.java
-    │   ├── RelatorioVendas.java
-    │   └── RelatorioRH.java
-    ├── implementacao/
-    │   ├── FormatoExportacao.java
-    │   ├── ExportadorPDF.java
-    │   ├── ExportadorExcel.java
-    │   └── ExportadorHTML.java
-    └── cliente/
-        └── Main.java
-```
 
 ## Diagrama de classes
 
 ![Diagrama de classes](docs/classesdiagr.png)
 
-O losango vazio entre `Relatorio` e `FormatoExportacao` indica agregação: o relatório tem um exportador, mas o exportador existe independente dele e pode ser trocado. O diagrama mostra só o construtor por simplicidade, mas no código `Relatorio` também tem o `setExportador(...)`, usado no passo 2 do `Main` pra trocar o formato do relatório de vendas em tempo de execução.
+O losango vazio entre `Relatorio` e `FormatoExportacao` indica agregação o relatório tem um exportador, mas o exportador existe independente dele e pode ser trocado. O diagrama mostra só o construtor por simplicidade, mas no código `Relatorio` também tem o `setExportador(...)`, usado no passo 2 do `Main` pra trocar o formato do relatório de vendas em tempo de execução.
 
 ## Diagrama de sequência
 
